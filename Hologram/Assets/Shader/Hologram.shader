@@ -22,7 +22,7 @@
         Tags { "RenderType"="Transparent" "Queue"="Transparent" }
 
         CGPROGRAM
-        #pragma surface surf Lambert noambient alpha:fade
+        #pragma surface surf nolight noambient alpha:fade
 
         float4 _RimColor;
         float _RimPower;
