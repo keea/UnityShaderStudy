@@ -5,6 +5,10 @@
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _BumpMap("NormalMap", 2D) = "bump" {}
         _Band("Number of Band", Range(1, 10)) = 5 //색상 띠 갯수
+        _SpecCol("Specular Color", color) = (1,1,1,1)
+        _SpecPow("Specular Power", Range(100,3000)) = 1000
+        _SpecBand("Number of Specular Band", Range(1,10)) = 2
+        _FrePow("Fresnel Power", Range(0.01, 1)) = 0.2
     }
     SubShader
     {
@@ -17,6 +21,10 @@
         sampler2D _MainTex;
         sampler2D _BumpMap;
         float _Band;
+        float4 _SpecCol;
+        float _SpecPow;
+        float _FrePow;
+        float _SpecBand;
 
         struct Input
         {
@@ -39,8 +47,26 @@
             ndotl *= _Band;
             ndotl = ceil(ndotl)/_Band;
 
+            float3 specColor;
+            float3 H = normalize(lightDir + viewDir);
+            float spec = saturate(dot(H, s.Normal));
+
+            spec = pow(spec, _SpecPow);
+            spec *= _SpecBand;
+            spec = ceil(spec)/_SpecBand;
+            specColor = spec * _SpecCol.rgb;
+
+            
+            float rim = abs(dot(s.Normal, viewDir));
+            
+            if(rim > _FrePow){
+                rim = 1;
+            }else{
+                rim = -1;
+            }
+           
             float4 final;
-            final.rgb = s.Albedo * ndotl * _LightColor0.rgb;
+            final.rgb = s.Albedo * ndotl * _LightColor0.rgb * rim + specColor;
             final.a = s.Alpha;
 
             return final;
